@@ -5,6 +5,7 @@ from pathlib import Path
 import typer
 from rich.console import Console
 from rich.prompt import Confirm
+from rich.progress import Progress, BarColumn, MofNCompleteColumn
 
 from store import Store
 from task import Task, Tasks
@@ -21,7 +22,6 @@ tasklist = None
 console = Console()
 
 IndexArg = typer.Argument(..., min=1)
-
 
 def _retrieve_tasklist(store):
     tl = store.get("tasks")
@@ -54,6 +54,18 @@ def initialize_store(fname):
 def is_empty_string(s):
     return not s or s.isspace()
 
+def draw_tasks_progress_bar():
+    tasks_count = tasklist.count_tasks()
+    done_count = tasklist.count_tasks("done")
+
+    progress = Progress(
+        BarColumn(40),
+        MofNCompleteColumn()
+    )
+
+    with progress:
+        task = progress.add_task("Progress", total=tasks_count)
+        progress.update(task, advance=done_count)
 
 """
 Start of Typer Commands.
@@ -84,7 +96,7 @@ def delete(task_id: int = IndexArg):
     if not tasklist.has_task(task_id - 1):
         raise RMNDException(f"Task #{task_id} does not exist!")
 
-    typer.confirm("Are you sure that you want to delete Task #{task_id}?", abort=True)
+    typer.confirm(f"Are you sure that you want to delete Task #{task_id}?", abort=True)
 
     tasklist.remove(task_id - 1)
     console.print(f"Task #{task_id} has been deleted.")
@@ -100,7 +112,7 @@ def rename(task_id: int = IndexArg, name: str = typer.Argument(...)):
 
     tasklist.change(task_id - 1, name)
     console.print(f"Task #{task_id} has been renamed to {name}.")
-    tasks_check(True)
+    tasks_check()
 
 
 @remind.command(rich_help_panel="Modify")
@@ -115,7 +127,7 @@ def move(old_id: int = IndexArg, new_id: int = IndexArg):
 
     tasklist.swap(old_id - 1, new_id - 1)
     console.print(f"Task #{old_id} has been moved to {new_id}.")
-    tasks_check(True)
+    tasks_check()
 
 
 @remind.command(rich_help_panel="Define")
@@ -138,7 +150,7 @@ def remove_done():
 
     tasklist.remove_done()
     console.print(f"All completed tasks have been removed.")
-    tasks_check(True)
+    tasks_check()
 
 
 @remind.command(rich_help_panel="Settings")
@@ -205,7 +217,7 @@ def mark_done(task_id: int = IndexArg):
 
     mark_single(task_id, True)
     console.print(f"Task #{task_id} has been marked done.")
-    tasks_check(True)
+    tasks_check()
 
 
 @mark_sub.command(name="pending")
@@ -214,7 +226,7 @@ def mark_pending(task_id: int = IndexArg):
 
     mark_single(task_id, False)
     console.print(f"Task #{task_id} has been marked pending.")
-    tasks_check(True)
+    tasks_check()
 
 
 @mark_sub.command(name="all-done")
@@ -227,7 +239,7 @@ def mark_all_done():
 
     tasklist.mark_all(True)
     console.print("All tasks have been marked as done.")
-    tasks_check(True)
+    tasks_check()
 
 
 @mark_sub.command(name="all-pending")
@@ -240,10 +252,10 @@ def mark_all_pending():
 
     tasklist.mark_all(False)
     console.print("All tasks have been marked as pending.")
-    tasks_check(True)
+    tasks_check()
 
 
-def tasks_check(force_list=False):
+def tasks_check():
     """Displays task details after commands."""
 
     tasks_count = tasklist.count_tasks()
@@ -251,10 +263,12 @@ def tasks_check(force_list=False):
 
     if not tasks_count:
         console.print(f"No tasks found.")
-    elif pending_count or force_list:
-        tasks()
     else:
-        console.print("No pending tasks remaining!")
+        tasks()
+        draw_tasks_progress_bar()
+
+        if not pending_count: 
+            console.print("No pending tasks remaining!")
 
 
 def welcome():

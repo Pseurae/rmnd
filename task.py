@@ -10,11 +10,12 @@ from utils import get_hash
 
 
 class Task(object):
-    _name = None
-    _changed = False
-    _full_hash = None
-    _status = False
-    _added_on = None
+    _name: str = None
+    _full_hash: str = None
+    _status: bool = False
+    _added_on: datetime = None
+
+    _changed: bool = False
 
     @property
     def name(self):
