@@ -74,14 +74,14 @@ class Tasks(object):
 
     def add(self, task):
         if self.is_duplicate(task):
-            raise Exception()
+            raise Exception("duplicate task.")
 
         self._tasks.append(task)
         self._change_cb()
 
     def remove(self, no):
         if not self.has_task(no):
-            raise Exception()
+            raise IndexError("task no out of bounds.")
 
         task = self._tasks[no]
         del self._tasks[no]
@@ -91,10 +91,10 @@ class Tasks(object):
 
     def swap(self, old, new):
         if not self.has_task(old):
-            raise Exception()
+            raise IndexError("task no out of bounds.")
 
         if not self.has_task(new):
-            return Exception(f)
+            raise IndexError("task no out of bounds.")
 
         self._tasks[old], self._tasks[new] = self._tasks[new], self._tasks[old]
         self._change_cb()
@@ -104,7 +104,7 @@ class Tasks(object):
             raise Exception("name and status arguments are exhaustive.")
 
         if not self.has_task(no):
-            raise Exception()
+            raise Exception("task no out of bounds.")
 
         task = self._tasks[no]
 
@@ -180,3 +180,4 @@ class Tasks(object):
                 return len([t for t in self._tasks if not t.status])
             case _:
                 raise Exception("Value of filt must be all, done or pending.")
+
