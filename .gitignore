@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+
+.D[Ss]_Store
+desktop.ini
+*.rmnd
