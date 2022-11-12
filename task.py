@@ -159,26 +159,24 @@ class Tasks(object):
 
         return table
 
+    _filter_funcs = {
+        "all": lambda t: True,
+        "done": lambda t: t.status,
+        "pending": lambda t: not t.status
+    }
+
     # filt: "all", "done", "pending"
     def create_table(self, filt="all"):
-        match filt:
-            case "all":
-                return self._create_table()
-            case "done":
-                return self._create_table(lambda t: t.status)
-            case "pending":
-                return self._create_table(lambda t: not t.status)
-            case _:
-                raise Exception("Value of filt must be all, done or pending.")
+        filter_func = self._filter_funcs.get(filt)
+        if filter_func is not None:
+            return self._create_table(filter_func)
+
+        raise Exception("Value of filt must be all, done or pending.")
 
     def count_tasks(self, filt="all"):
-        match filt:
-            case "all":
-                return len(self._tasks)
-            case "done":
-                return len([t for t in self._tasks if t.status])
-            case "pending":
-                return len([t for t in self._tasks if not t.status])
-            case _:
-                raise Exception("Value of filt must be all, done or pending.")
+        filter_func = self._filter_funcs.get(filt)
+        if filter_func is not None:
+            return len([ t for t in self._tasks if filter_func(t) ])
+        else:
+            raise Exception("Value of filt must be all, done or pending.")
 
