@@ -4,8 +4,7 @@ from pathlib import Path
 
 import typer
 from rich.console import Console
-from rich.prompt import Confirm
-from rich.progress import Progress, BarColumn, MofNCompleteColumn
+from rich.progress import BarColumn, MofNCompleteColumn, Progress
 
 from store import Store
 from task import Task, Tasks
@@ -22,6 +21,7 @@ tasklist = None
 console = Console()
 
 IndexArg = typer.Argument(..., min=1)
+
 
 def _retrieve_tasklist(store):
     tl = store.get("tasks")
@@ -54,18 +54,17 @@ def initialize_store(fname):
 def is_empty_string(s):
     return not s or s.isspace()
 
+
 def draw_tasks_progress_bar():
     tasks_count = tasklist.count_tasks()
     done_count = tasklist.count_tasks("done")
 
-    progress = Progress(
-        BarColumn(40),
-        MofNCompleteColumn()
-    )
+    progress = Progress(BarColumn(40), MofNCompleteColumn())
 
     with progress:
         task = progress.add_task("Progress", total=tasks_count)
         progress.update(task, advance=done_count)
+
 
 """
 Start of Typer Commands.
@@ -96,7 +95,8 @@ def delete(task_id: int = IndexArg):
     if not tasklist.has_task(task_id - 1):
         raise RMNDException(f"Task #{task_id} does not exist!")
 
-    typer.confirm(f"Are you sure that you want to delete Task #{task_id}?", abort=True)
+    typer.confirm(
+        f"Are you sure that you want to delete Task #{task_id}?", abort=True)
 
     tasklist.remove(task_id - 1)
     console.print(f"Task #{task_id} has been deleted.")
@@ -134,7 +134,8 @@ def move(old_id: int = IndexArg, new_id: int = IndexArg):
 def clear():
     """Delete all tasks from the list."""
 
-    typer.confirm(f"Are you sure that you want to clear your tasklist?", abort=True)
+    typer.confirm(
+        f"Are you sure that you want to clear your tasklist?", abort=True)
 
     tasklist.clear()
     console.print("Tasklist has been cleared.")
@@ -165,7 +166,8 @@ def callme(name: str):
     )
 
     store.set("username", name)
-    console.print(f"Username has been changed to [bold cyan]{name}[/bold cyan].")
+    console.print(
+        f"Username has been changed to [bold cyan]{name}[/bold cyan].")
 
 
 @remind.command(rich_help_panel="Display")
@@ -267,7 +269,7 @@ def tasks_check():
         tasks()
         draw_tasks_progress_bar()
 
-        if not pending_count: 
+        if not pending_count:
             console.print("No pending tasks remaining!")
 
 
@@ -283,7 +285,7 @@ def first_startup(app_name):
     """Called on first startup."""
 
     username = store.get("username")
-    console.print(f"Welcome [bold cyan]Adhith[/bold cyan]!")
+    console.print(f"Welcome [bold cyan]{username}[/bold cyan]!")
     console.print(f"Use '{app_name} add' to create a task!")
     raise typer.Exit()
 
@@ -291,7 +293,8 @@ def first_startup(app_name):
 @remind.callback(invoke_without_command=True, epilog="Made by Adhith")
 def main(
     ctx: typer.Context,
-    store_path: Path = typer.Option("store.rmnd", help="Use another file to save."),
+    store_path: Path = typer.Option(
+        "store.rmnd", help="Use another file to save."),
 ):
     """Remind - A Minimal CLI Todo List"""
 

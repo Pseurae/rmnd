@@ -143,7 +143,8 @@ class Tasks(object):
         return self._tasks[no]
 
     def _create_table(self, fil_fn=None):
-        table = Table("No.", "Name", "Hash", "Added On", "Status", box=box.MINIMAL)
+        table = Table("No.", "Name", "Hash", "Added On",
+                      "Status", box=box.MINIMAL)
 
         for i, t in enumerate(self._tasks):
             if fil_fn is not None and not fil_fn(t):
@@ -153,7 +154,8 @@ class Tasks(object):
             name = Align(t.name, align="left")
             hash = Align(t.hash, align="center")
             added_on = Align(t.added_on.strftime("%c"), align="center")
-            status = Align(GREEN_TICK if t.status else RED_CIRCLE, align="center")
+            status = Align(
+                GREEN_TICK if t.status else RED_CIRCLE, align="center")
 
             table.add_row(no, name, hash, added_on, status)
 
@@ -162,7 +164,7 @@ class Tasks(object):
     _filter_funcs = {
         "all": lambda t: True,
         "done": lambda t: t.status,
-        "pending": lambda t: not t.status
+        "pending": lambda t: not t.status,
     }
 
     # filt: "all", "done", "pending"
@@ -176,7 +178,6 @@ class Tasks(object):
     def count_tasks(self, filt="all"):
         filter_func = self._filter_funcs.get(filt)
         if filter_func is not None:
-            return len([ t for t in self._tasks if filter_func(t) ])
+            return len([t for t in self._tasks if filter_func(t)])
 
         raise Exception("Value of filt must be all, done or pending.")
-
