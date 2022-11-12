@@ -177,6 +177,6 @@ class Tasks(object):
         filter_func = self._filter_funcs.get(filt)
         if filter_func is not None:
             return len([ t for t in self._tasks if filter_func(t) ])
-        else:
-            raise Exception("Value of filt must be all, done or pending.")
+
+        raise Exception("Value of filt must be all, done or pending.")
 
