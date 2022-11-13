@@ -61,12 +61,12 @@ class Task(object):
         return not (self == other)
 
     def __getstate__(self):
-        return { "name": self._name, "added_on": self._added_on, "status": self._status }
+        return ( self._name, self._added_on, self._status )
 
     def __setstate__(self, i):
-        self.rename(i["name"])
-        self.set_status(i["status"])
-        self._added_on = i["added_on"]
+        self.rename(i[0])
+        self._added_on = i[1]
+        self.set_status(i[2])
 
 GREEN_TICK = "[bold green]✓[/bold green]"
 RED_CIRCLE = "[bold red]○[/bold red]"

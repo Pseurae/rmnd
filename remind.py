@@ -281,14 +281,14 @@ def welcome():
     tasks_check()
 
 
-def first_startup(app_name):
+def first_startup(ctx):
     """Called on first startup."""
 
     username = store.get("username")
     console.print(f"Welcome [bold cyan]{username}[/bold cyan]!")
-    console.print(f"Use '{app_name} add' to create a task!")
-    raise typer.Exit()
-
+    if ctx.invoked_subcommand is None:
+        console.print(f"Use '{ctx.info_name} add' to create a task!")
+        raise typer.Exit()
 
 @remind.callback(invoke_without_command=True, epilog="Made by Adhith")
 def main(
@@ -301,7 +301,7 @@ def main(
     initialize_store(store_path.resolve())
 
     if _check_username(store):
-        first_startup(ctx.info_name)
+        first_startup(ctx)
 
     if ctx.invoked_subcommand is None:
         welcome()
