@@ -12,6 +12,7 @@ class Store(object):
 
     def load(self):
         fields = safe_load(self.fname)
+
         if fields is None:
             fields = self._default_mappings.copy()
 

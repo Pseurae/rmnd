@@ -80,6 +80,7 @@ class Tasks(object):
         self._tasks = tasks
         self._changed_cb = changed_cb
 
+    # Disable setting of _tasks after constructor
     def __setattr__(self, field, value):
         if field == "_tasks":
             if getattr(self, "_tasks") is not None:

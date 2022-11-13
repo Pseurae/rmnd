@@ -16,8 +16,8 @@ remind.add_typer(
     mark_sub, name="mark", help="(Section) Marking tasks.", rich_help_panel="Modify"
 )
 
-store = None
-tasklist = None
+store: Store = None
+tasklist: Tasks = None
 console = Console()
 
 IndexArg = typer.Argument(..., min=1)
@@ -273,12 +273,15 @@ def tasks_check():
             console.print("No pending tasks remaining!")
 
 
-def welcome():
+def welcome(ctx):
     """Called when rmnd is ran without a command."""
 
     username = store.get("username")
     console.print(f"Hello [bold cyan]{username}[/bold cyan].")
     tasks_check()
+
+    if not tasklist.count_tasks():
+        console.print(f"Use '{ctx.info_name} add' to create a task!")
 
 
 def first_startup(ctx):
@@ -286,9 +289,11 @@ def first_startup(ctx):
 
     username = store.get("username")
     console.print(f"Welcome [bold cyan]{username}[/bold cyan]!")
+
     if ctx.invoked_subcommand is None:
         console.print(f"Use '{ctx.info_name} add' to create a task!")
         raise typer.Exit()
+
 
 @remind.callback(invoke_without_command=True, epilog="Made by Adhith")
 def main(
@@ -300,11 +305,12 @@ def main(
 
     initialize_store(store_path.resolve())
 
+    assert store is not None
+    assert tasklist is not None
+
     if _check_username(store):
         first_startup(ctx)
 
     if ctx.invoked_subcommand is None:
-        welcome()
+        welcome(ctx)
 
-    assert store is not None
-    assert tasklist is not None
