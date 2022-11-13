@@ -61,12 +61,13 @@ class Task(object):
         return not (self == other)
 
     def __getstate__(self):
-        return ( self._name, self._added_on, self._status )
+        return (self._name, self._added_on, self._status)
 
     def __setstate__(self, i):
         self.rename(i[0])
         self._added_on = i[1]
         self.set_status(i[2])
+
 
 GREEN_TICK = "[bold green]✓[/bold green]"
 RED_CIRCLE = "[bold red]○[/bold red]"
@@ -82,9 +83,8 @@ class Tasks(object):
 
     # Disable setting of _tasks after constructor
     def __setattr__(self, field, value):
-        if field == "_tasks":
-            if getattr(self, "_tasks") is not None:
-                raise ValueError("Cannot set _tasks after initialization.")
+        if field == "_tasks" and getattr(self, "_tasks") is not None:
+            raise ValueError("Cannot set _tasks after initialization.")
 
         super().__setattr__(field, value)
 
@@ -162,8 +162,7 @@ class Tasks(object):
         return self._tasks[no]
 
     def _create_table(self, fil_fn=None):
-        table = Table("No.", "Name", "Hash", "Added On",
-                      "Status", box=box.MINIMAL)
+        table = Table("No.", "Name", "Hash", "Added On", "Status", box=box.MINIMAL)
 
         for i, t in enumerate(self._tasks):
             if fil_fn is not None and not fil_fn(t):
@@ -173,8 +172,7 @@ class Tasks(object):
             name = Align(t.name, align="left")
             hash = Align(t.hash, align="center")
             added_on = Align(t.added_on.strftime("%c"), align="center")
-            status = Align(
-                GREEN_TICK if t.status else RED_CIRCLE, align="center")
+            status = Align(GREEN_TICK if t.status else RED_CIRCLE, align="center")
 
             table.add_row(no, name, hash, added_on, status)
 

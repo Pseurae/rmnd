@@ -59,7 +59,7 @@ def draw_tasks_progress_bar():
     tasks_count = tasklist.count_tasks()
     done_count = tasklist.count_tasks("done")
 
-    progress = Progress(BarColumn(), MofNCompleteColumn())
+    progress = Progress(BarColumn(), MofNCompleteColumn(), console=console)
 
     with progress:
         task = progress.add_task("Progress", total=tasks_count)
@@ -95,8 +95,7 @@ def delete(task_id: int = IndexArg):
     if not tasklist.has_task(task_id - 1):
         raise RMNDException(f"Task #{task_id} does not exist!")
 
-    typer.confirm(
-        f"Are you sure that you want to delete Task #{task_id}?", abort=True)
+    typer.confirm(f"Are you sure that you want to delete Task #{task_id}?", abort=True)
 
     tasklist.remove(task_id - 1)
     console.print(f"Task #{task_id} has been deleted.")
@@ -119,11 +118,11 @@ def rename(task_id: int = IndexArg, name: str = typer.Argument(...)):
 def move(old_id: int = IndexArg, new_id: int = IndexArg):
     """Change task order."""
 
-    if not tasklist.has_task(old - 1):
+    if not tasklist.has_task(old_id - 1):
         raise RMNDException(f"Task #{old_id} does not exist!")
 
-    if not tasklist.has_task(new - 1):
-        return RMNDException(f"Task #{new_id} does not exist!")
+    if not tasklist.has_task(new_id - 1):
+        raise RMNDException(f"Task #{new_id} does not exist!")
 
     tasklist.swap(old_id - 1, new_id - 1)
     console.print(f"Task #{old_id} has been moved to {new_id}.")
@@ -134,8 +133,7 @@ def move(old_id: int = IndexArg, new_id: int = IndexArg):
 def clear():
     """Delete all tasks from the list."""
 
-    typer.confirm(
-        f"Are you sure that you want to clear your tasklist?", abort=True)
+    typer.confirm(f"Are you sure that you want to clear your tasklist?", abort=True)
 
     tasklist.clear()
     console.print("Tasklist has been cleared.")
@@ -166,8 +164,7 @@ def callme(name: str):
     )
 
     store.set("username", name)
-    console.print(
-        f"Username has been changed to [bold cyan]{name}[/bold cyan].")
+    console.print(f"Username has been changed to [bold cyan]{name}[/bold cyan].")
 
 
 @remind.command(rich_help_panel="Display")
@@ -298,8 +295,7 @@ def first_startup(ctx):
 @remind.callback(invoke_without_command=True, epilog="Made by Adhith")
 def main(
     ctx: typer.Context,
-    store_path: Path = typer.Option(
-        "store.rmnd", help="Use another file to save."),
+    store_path: Path = typer.Option("store.rmnd", help="Use another file to save."),
 ):
     """Remind - A Minimal CLI Todo List"""
 
@@ -313,4 +309,3 @@ def main(
 
     if ctx.invoked_subcommand is None:
         welcome(ctx)
-

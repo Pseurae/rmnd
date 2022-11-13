@@ -24,5 +24,4 @@ def get_hash(name):
 
 
 class RMNDException(ClickException):
-    def format_message(self):
-        return f"{self.message}"
+    """Custom exception for rich support."""
