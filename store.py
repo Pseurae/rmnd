@@ -29,3 +29,4 @@ class Store(object):
     def set(self, key, value):
         self._fields[key] = value
         self.save()
+

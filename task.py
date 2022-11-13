@@ -60,6 +60,13 @@ class Task(object):
     def __ne__(self, other):
         return not (self == other)
 
+    def __getstate__(self):
+        return { "name": self._name, "added_on": self._added_on, "status": self._status }
+
+    def __setstate__(self, i):
+        self.rename(i["name"])
+        self.set_status(i["status"])
+        self._added_on = i["added_on"]
 
 GREEN_TICK = "[bold green]✓[/bold green]"
 RED_CIRCLE = "[bold red]○[/bold red]"
@@ -67,18 +74,29 @@ RED_CIRCLE = "[bold red]○[/bold red]"
 
 class Tasks(object):
     _tasks = None
-    _change_cb = None
+    _changed_cb = None
 
-    def __init__(self, tasks, change_cb=None):
+    def __init__(self, tasks, changed_cb=None):
         self._tasks = tasks
-        self._change_cb = change_cb
+        self._changed_cb = changed_cb
+
+    def __setattr__(self, field, value):
+        if field == "_tasks":
+            if getattr(self, "_tasks") is not None:
+                raise ValueError("Cannot set _tasks after initialization.")
+
+        super().__setattr__(field, value)
+
+    def post_change(self):
+        if self._changed_cb is not None:
+            self._changed_cb()
 
     def add(self, task):
         if self.is_duplicate(task):
             raise Exception("duplicate task.")
 
         self._tasks.append(task)
-        self._change_cb()
+        self.post_change()
 
     def remove(self, no):
         if not self.has_task(no):
@@ -86,7 +104,7 @@ class Tasks(object):
 
         task = self._tasks[no]
         del self._tasks[no]
-        self._change_cb()
+        self.post_change()
 
         return True
 
@@ -98,7 +116,7 @@ class Tasks(object):
             raise IndexError("task no out of bounds.")
 
         self._tasks[old], self._tasks[new] = self._tasks[new], self._tasks[old]
-        self._change_cb()
+        self.post_change()
 
     def change(self, no, name=None, status=None):
         if name is None and status is None:
@@ -115,23 +133,23 @@ class Tasks(object):
         if status is not None:
             task.set_status(status)
 
-        self._change_cb()
+        self.post_change()
 
     def mark_all(self, status):
         for t in self._tasks:
             t.set_status(status)
 
-        self._change_cb()
+        self.post_change()
 
     def clear(self):
         self._tasks.clear()
-        self._change_cb()
+        self.post_change()
 
     def remove_done(self):
         for t in self._tasks[:]:
             if t.status:
                 self._tasks.remove(t)
-        self._change_cb()
+        self.post_change()
 
     def is_duplicate(self, val):
         return val in self._tasks

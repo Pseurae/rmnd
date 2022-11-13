@@ -59,7 +59,7 @@ def draw_tasks_progress_bar():
     tasks_count = tasklist.count_tasks()
     done_count = tasklist.count_tasks("done")
 
-    progress = Progress(BarColumn(40), MofNCompleteColumn())
+    progress = Progress(BarColumn(), MofNCompleteColumn())
 
     with progress:
         task = progress.add_task("Progress", total=tasks_count)
@@ -305,3 +305,6 @@ def main(
 
     if ctx.invoked_subcommand is None:
         welcome()
+
+    assert store is not None
+    assert tasklist is not None

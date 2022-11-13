@@ -3,7 +3,7 @@
 
 By **@Adhith Chand Thiruvath**
 
-rmnd (called remind) is a todo list made with Python using Click, Typer, Rich and pickle.  
+rmnd (called remind) is a todo list made with Python using Click, Typer, Rich and pickle. It has an emphasis on code simplicity and directness.
 
 rmnd is made as my (Adhith Chand Thiruvath's) final year CS investigatory project submission.
 
