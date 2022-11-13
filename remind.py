@@ -24,6 +24,10 @@ IndexArg = typer.Argument(..., min=1)
 
 
 def _retrieve_tasklist(store):
+    """
+    Returns the list of stored tasks or creates a list if one doesn't exist.
+    """
+
     tl = store.get("tasks")
 
     if tl is None:
@@ -34,15 +38,24 @@ def _retrieve_tasklist(store):
 
 
 def _check_username(store):
+    """
+    Returns True is username exists in the store.
+    Prompts the user to enter a username and returns False if username doesn't exist.
+    """
+
     if store.get("username"):
-        return False
+        return True
 
     username = typer.prompt("Enter Username")
     store.set("username", username)
-    return True
+    return False
 
 
 def initialize_store(fname):
+    """
+    Initializes the pickle store and tasklist.
+    """
+
     global store, tasklist
 
     store = Store(fname)
@@ -52,10 +65,18 @@ def initialize_store(fname):
 
 
 def is_empty_string(s):
+    """
+    Check whether string is empty.
+    Whitespace is also counted as empty.
+    """
     return not s or s.isspace()
 
 
 def draw_tasks_progress_bar():
+    """
+    Draws a progress bar for the tasklist.
+    """
+
     tasks_count = tasklist.count_tasks()
     done_count = tasklist.count_tasks("done")
 
@@ -71,10 +92,8 @@ Start of Typer Commands.
 """
 
 
-@remind.command(rich_help_panel="Define")
+@remind.command(help="Append a task to the list.", rich_help_panel="Define")
 def add(name: str):
-    """Append a task to the list."""
-
     if is_empty_string(name):
         raise typer.BadParameter("Task name cannot be an empty string!")
 
@@ -88,10 +107,8 @@ def add(name: str):
     tasks_check()
 
 
-@remind.command(rich_help_panel="Define")
+@remind.command(help="Delete a task from the list.", rich_help_panel="Define")
 def delete(task_id: int = IndexArg):
-    """Delete a task from the list."""
-
     if not tasklist.has_task(task_id - 1):
         raise RMNDException(f"Task #{task_id} does not exist!")
 
@@ -102,10 +119,8 @@ def delete(task_id: int = IndexArg):
     tasks_check()
 
 
-@remind.command(rich_help_panel="Modify")
+@remind.command(help="Rename a task.", rich_help_panel="Modify")
 def rename(task_id: int = IndexArg, name: str = typer.Argument(...)):
-    """Rename a task."""
-
     if not tasklist.has_task(task_id - 1):
         raise RMNDException(f"Task #{task_id} does not exist!")
 
@@ -114,10 +129,8 @@ def rename(task_id: int = IndexArg, name: str = typer.Argument(...)):
     tasks_check()
 
 
-@remind.command(rich_help_panel="Modify")
+@remind.command(help="Change task order.", rich_help_panel="Modify")
 def move(old_id: int = IndexArg, new_id: int = IndexArg):
-    """Change task order."""
-
     if not tasklist.has_task(old_id - 1):
         raise RMNDException(f"Task #{old_id} does not exist!")
 
@@ -129,20 +142,16 @@ def move(old_id: int = IndexArg, new_id: int = IndexArg):
     tasks_check()
 
 
-@remind.command(rich_help_panel="Define")
+@remind.command(help="Delete all tasks from the list.", rich_help_panel="Define")
 def clear():
-    """Delete all tasks from the list."""
-
     typer.confirm(f"Are you sure that you want to clear your tasklist?", abort=True)
 
     tasklist.clear()
     console.print("Tasklist has been cleared.")
 
 
-@remind.command(rich_help_panel="Define")
+@remind.command(help="Delete all finished tasks.", rich_help_panel="Define")
 def remove_done():
-    """Delete all finished tasks."""
-
     typer.confirm(
         f"Are you sure that you want to remove all completed tasks?", abort=True
     )
@@ -152,10 +161,8 @@ def remove_done():
     tasks_check()
 
 
-@remind.command(rich_help_panel="Settings")
+@remind.command(help="Change username.", rich_help_panel="Settings")
 def callme(name: str):
-    """Change Username."""
-
     if is_empty_string(name):
         raise typer.BadParameter("Username cannot be an empty string!")
 
@@ -167,10 +174,8 @@ def callme(name: str):
     console.print(f"Username has been changed to [bold cyan]{name}[/bold cyan].")
 
 
-@remind.command(rich_help_panel="Display")
+@remind.command(help="Display all done tasks.", rich_help_panel="Display")
 def done():
-    """Display all done tasks."""
-
     table = tasklist.create_table("done")
 
     if table.rows:
@@ -179,10 +184,8 @@ def done():
         console.print("No done tasks.")
 
 
-@remind.command(rich_help_panel="Display")
+@remind.command(help="Display all pending tasks.", rich_help_panel="Display")
 def pending():
-    """Display all pending tasks."""
-
     table = tasklist.create_table("pending")
 
     if table.rows:
@@ -191,10 +194,8 @@ def pending():
         console.print("No pending tasks.")
 
 
-@remind.command(rich_help_panel="Display")
+@remind.command(help="Display all tasks in the list.", rich_help_panel="Display")
 def tasks():
-    """Display all tasks in the list."""
-
     table = tasklist.create_table("all")
 
     if table.rows:
@@ -204,34 +205,33 @@ def tasks():
 
 
 def mark_single(task_id, status):
+    """
+    Marks a task with the given status.
+    Also handles exception if task ID out of bounds.
+    """
+
     if not tasklist.has_task(task_id - 1):
         raise RMNDException(f"Task #{task_id} does not exist!")
 
     tasklist.change(task_id - 1, status=status)
 
 
-@mark_sub.command(name="done")
+@mark_sub.command(help="Mark a task as finished.", name="done")
 def mark_done(task_id: int = IndexArg):
-    """Mark a task as finished."""
-
     mark_single(task_id, True)
     console.print(f"Task #{task_id} has been marked done.")
     tasks_check()
 
 
-@mark_sub.command(name="pending")
+@mark_sub.command(help="Mark a task as unfinished.", name="pending")
 def mark_pending(task_id: int = IndexArg):
-    """Mark a task as unfinished."""
-
     mark_single(task_id, False)
     console.print(f"Task #{task_id} has been marked pending.")
     tasks_check()
 
 
-@mark_sub.command(name="all-done")
+@mark_sub.command(help="Mark all tasks as finished.", name="all-done")
 def mark_all_done():
-    """Mark all tasks as finished."""
-
     typer.confirm(
         "Are you sure that you want to mark all tasks as completed?", abort=True
     )
@@ -241,10 +241,8 @@ def mark_all_done():
     tasks_check()
 
 
-@mark_sub.command(name="all-pending")
+@mark_sub.command(help="Mark all tasks as unfinished.", name="all-pending")
 def mark_all_pending():
-    """Mark all tasks as unfinished."""
-
     typer.confirm(
         "Are you sure that you want to mark all tasks as incomplete?", abort=True
     )
@@ -255,7 +253,9 @@ def mark_all_pending():
 
 
 def tasks_check():
-    """Displays task details after commands."""
+    """
+    Post-command callback to display task details after commands are finished.
+    """
 
     tasks_count = tasklist.count_tasks()
     pending_count = tasklist.count_tasks("pending")
@@ -271,7 +271,9 @@ def tasks_check():
 
 
 def welcome(ctx):
-    """Called when rmnd is ran without a command."""
+    """
+    Called when rmnd is ran without a command.
+    """
 
     username = store.get("username")
     console.print(f"Hello [bold cyan]{username}[/bold cyan].")
@@ -282,7 +284,9 @@ def welcome(ctx):
 
 
 def first_startup(ctx):
-    """Called on first startup."""
+    """
+    Called on first startup after username prompt.
+    """
 
     username = store.get("username")
     console.print(f"Welcome [bold cyan]{username}[/bold cyan]!")
@@ -292,19 +296,26 @@ def first_startup(ctx):
         raise typer.Exit()
 
 
-@remind.callback(invoke_without_command=True, epilog="Made by Adhith")
+@remind.callback(
+    invoke_without_command=True,
+    help="Remind - A Minimal CLI Todo List",
+    epilog="Made by Adhith",
+)
 def main(
     ctx: typer.Context,
     store_path: Path = typer.Option("store.rmnd", help="Use another file to save."),
 ):
-    """Remind - A Minimal CLI Todo List"""
+    """
+    Callback that initializes the store and tasklist before the respective command function is called.
+    Invokes welcome function when no commands are supplied.
+    """
 
     initialize_store(store_path.resolve())
 
     assert store is not None
     assert tasklist is not None
 
-    if _check_username(store):
+    if not _check_username(store):
         first_startup(ctx)
 
     if ctx.invoked_subcommand is None:
